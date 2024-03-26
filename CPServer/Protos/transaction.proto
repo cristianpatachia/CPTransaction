@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option csharp_namespace = "CPServer";
+
+package transaction;
+
+service Transaction { 
+  rpc ReadTransaction (ReadTransactionRequest) returns (ReadTransactionResponse);
+  rpc ReadTransactionList (ReadTransactionListRequest) returns (stream ReadTransactionResponse);
+
+  rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
+}
+
+// ReadTransaction
+message ReadTransactionRequest {
+	string CustomerId = 1;
+	string AccountId = 2;
+	string TransactionId = 3;
+}
+
+message ReadTransactionResponse {
+	string RecipientId = 1;
+	string Amount = 2;
+	string Details = 3;
+	string Timestamp = 4;
+	string TransactionStatus = 5;
+}
+
+// ReadTransactionList
+message ReadTransactionListRequest {
+	string AccountId = 1;
+}
+
+// CreateTransaction
+message CreateTransactionRequest {
+	string SenderId = 1;
+	string RecipientId = 2;
+	string Amount = 3;
+	string Timestamp = 4;
+	string Details = 5;
+}
+
+message CreateTransactionResponse { 
+	int32 IsSuccess = 1;
+	string Message = 2;
+}

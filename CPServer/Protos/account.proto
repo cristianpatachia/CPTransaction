@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "CPServer";
+
+package account;
+
+service Account { 
+	rpc GetAccountsDropdown (ReadAccountsRequest) returns (stream ReadAccountsResponse);  
+}
+
+//GetAccountDropdown
+message ReadAccountsRequest {
+}
+
+message ReadAccountsResponse {
+	string Id = 1;	
+	string Name = 2;
+}

@@ -1,0 +1,89 @@
+﻿@page "/history"
+
+@using CPClient.Services.Interfaces
+@using CPClient.Model
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@inject ITransactionGrpcClientService transactionGrpcClientService
+@inject IAccountGrpcClientService accountGrpcClientService
+
+<PageTitle>Transaction History</PageTitle>
+
+<h1>Transaction History</h1>
+
+<EditForm Model=@account OnValidSubmit="@GetTransactionHistory">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div style="width: 40%">
+        <div class="form-group"></div>
+        <label for="account">Account</label>
+        <InputSelect class="form-control" id="accounts" @bind-Value="@account.Id" @onclick="@GetAccountsDropdownData">
+            <option value="">Select Account</option>
+            @if (AccountsDropdown is not null)
+            {
+                @foreach (var account in AccountsDropdown)
+                {
+                    <option value="@account.Value">@account.Text</option>
+                }
+            }
+        </InputSelect>
+        <br />
+        <br />
+        <div>
+            <button type="submit" class="btn btn-primary">Get Transaction History</button>
+        </div>
+    </div>
+</EditForm>
+
+@if (TransactionHistory != null && TransactionHistory.Any())
+{
+    <table class="table">
+        <thead>
+        <th>RecipientId</th>
+        <th>Ammount</th>
+        <th>Details</th>
+        <th>Timestamp</th>
+        <th>Transaction Status</th>
+        </thead>
+        <tbody>
+            @foreach (var item in TransactionHistory)
+            {
+                <tr>
+                    <td>@item.RecipientId</td>
+                    <td>@item.Amount</td>
+                    <td>@item.Details</td>
+                    <td>@item.Timestamp</td>
+                    <td>@item.TransactionStatus</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public AccountModel account = new AccountModel();
+    [Parameter] public List<SelectListItem> AccountsDropdown { get; set; }
+    [Parameter] public List<ReadTransactionResponse> TransactionHistory { get; set; }
+
+
+    public async Task GetAccountsDropdownData()
+    {
+        var dropdownData = await accountGrpcClientService.GetAccountsDropdown();
+
+        AccountsDropdown = dropdownData.Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id
+            })
+            .ToList();
+    }
+
+
+    public async Task GetTransactionHistory()
+    {
+        var response = await transactionGrpcClientService.ReadTransactionHistoryRequest(account);
+
+        TransactionHistory = response;
+    }
+}
+

@@ -1,0 +1,105 @@
+﻿@page "/"
+@using CPClient.Model
+@using CPClient.Services.Interfaces
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@inject ITransactionGrpcClientService transactionGrpcClientService
+@inject IAccountGrpcClientService accountGrpcClientService
+
+<PageTitle>Index</PageTitle>
+
+
+<EditForm Model=@transactionModel OnValidSubmit="@CreateTransaction">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="containerWidth">
+        <div class="form-group">
+            <label for="senderIdString">Sender:</label>
+            <InputSelect class="form-control" id="senderIdString" @bind-Value="@transactionModel.SenderIdString" @onclick="@GetAccountsDropdownData">
+                <option value="">Select Sender Account</option>
+                @if (AccountsDropdown is not null)
+                {
+                    @foreach (var account in AccountsDropdown)
+                    {
+                        <option value="@account.Value">@account.Text</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+
+        <div class="form-group">
+            <label for="recipientIdString">Recipient:</label>
+            <InputSelect class="form-control" id="recipientIdString" @bind-Value="@transactionModel.RecipientIdString" @onclick="@GetAccountsDropdownData">
+                <option value="">Select Recipient Account</option>
+                @if (AccountsDropdown is not null)
+                {
+                    @foreach (var account in AccountsDropdown)
+                    {
+                        <option value="@account.Value">@account.Text</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount:</label>
+            <InputNumber id="amount" class="form-control" @bind-Value="transactionModel.Amount" />
+        </div>
+
+        <div class="form-group">
+            <label for="details">Details:</label>
+            <InputText id="details" class="form-control" @bind-Value="transactionModel.Details" />
+        </div>
+
+        <br />
+
+        <button type="submit" class="btn btn-primary">Submit Transaction</button>
+    </div>
+</EditForm>
+
+@if (Message is not null)
+{
+    <br />
+    <div class="@(IsSuccess ? "text-success" : "text-danger")">@Message</div>
+}
+
+
+@code {
+    public TransactionModel transactionModel = new TransactionModel();
+    [Parameter] public string Message { get; set; }
+    [Parameter] public bool IsSuccess { get; set; }
+    [Parameter] public List<SelectListItem> AccountsDropdown { get; set; }
+
+
+    public async Task CreateTransaction()
+    {
+        var response = await transactionGrpcClientService.CreateTransactionRequest(transactionModel);
+
+        if (response != null)
+        {
+            Message = response.Message;
+            IsSuccess = Convert.ToBoolean(response.IsSuccess);
+        }
+
+        transactionModel = new TransactionModel();
+    }
+
+    public async Task GetAccountsDropdownData()
+    {
+        var dropdownData = await accountGrpcClientService.GetAccountsDropdown();
+
+        AccountsDropdown = dropdownData.Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id
+            })
+            .ToList();
+    }
+
+}
+
+<style>
+    .containerWidth {
+        width: 40%;
+    }
+</style>
