@@ -1,4 +1,4 @@
 ### CP Transaction gRPC
 
-CPServer - gRPC Client
+CPServer - gRPC 
 CPClient - Blazor UI
